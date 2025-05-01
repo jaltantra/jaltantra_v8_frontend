@@ -1,0 +1,109 @@
+.optbar{
+    height: 90vh;
+    background-color: rgb(255, 255, 255);
+    width: 15%;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 100px 40px;
+    text-align: center;
+    color:  #333;
+}
+.optbar .fileupload-btn{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap:20px;
+}
+.optbar .optimize-btn{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+.optbar button, .optbar label{
+    text-align: center;
+    padding:10px;
+    font-family: "Poppins", sans-serif;
+    font-size: medium;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.349);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.optbar .fileupload-btn button, .optbar .fileupload-btn label{
+    background-color: white;
+    border: 3px solid #512da8;
+}
+.optbar .fileupload-btn input{
+    background-color: white;
+    border: 3px solid #512da8;
+    display: none;
+}
+.optbar .fileupload-btn  button:hover,  .optbar .fileupload-btn label:hover{
+    background-color: #512da8;
+    color: white;
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.349);
+}
+.optbar .optimize-btn  button{
+    background-color: #512da8;
+    color: white;
+    border: 3px solid #512da8;
+    transition: 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.optbar .optimize-btn  button:hover{
+    background-color: white;
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.349);
+    color: black;
+}
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* Dark semi-transparent background */
+    backdrop-filter: blur(5px); /* Blur the background */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    z-index: 9999; /* Make sure the modal is above other elements */
+  }
+  
+  /* Modal content */
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+  }
+  
+  /* Close button */
+  .modal-content button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .modal-content button:hover {
+    background-color: #0056b3;
+  }
+  

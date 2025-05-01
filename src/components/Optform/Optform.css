@@ -1,0 +1,10 @@
+.optform{
+    padding: 10px;
+    min-height: 80vh;
+    width: 60%;
+    background-color: #f3f3f31c;
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+    border-left: 20px solid #512da8;
+}

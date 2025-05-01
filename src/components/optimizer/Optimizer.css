@@ -1,0 +1,138 @@
+.optimizer{
+    min-height: 90vh;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}
+.optimizer-form{
+    width: 90%;
+    margin: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+.optimizer-form div{
+    font-family: "Poppins", sans-serif;
+}
+.optimizer-form input{
+    background-color: #eee;
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    font-family: "Poppins", sans-serif;
+}
+.optimizer-form select{
+    background-color: #eee;
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    font-family: "Poppins", sans-serif;
+    margin-left: 10px;
+}
+.optimizer-form h1{
+    font-size: 30px;
+    font-family: "Poppins", sans-serif;
+}
+
+.optimizer-form .table-entry{
+    display: flex;
+    margin-top: 30px;
+}
+
+.optimizer-form .table-entry input{
+    margin-left: 10px;
+    font-family: "Poppins", sans-serif;
+}
+.optimizer-form button{
+    margin: 0 10px;
+    padding: 10px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    font-family: "Poppins", sans-serif;
+    background-color: #512da8;
+    color: #fff;
+    border: 2px solid #512da8;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.optimizer-form .table-entry button{
+    margin: 10px 10px;
+}
+.optimizer-form button:hover{
+    background-color: #fff;
+    color: black;
+}
+.optimizer-form th{
+    font-family: "Poppins", sans-serif;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.226);
+    font-size: 12px;
+    padding: 0px 40px;
+}
+.optimizer-form td{
+    text-align: center;
+    font-family: "Poppins", sans-serif;
+    font-size: 12px;
+}
+.optimizer-form table{
+    margin-top: 30px;
+}
+.optimizer-form .checkbox{
+    width: 20px;
+    margin: 4px;
+}
+.optimizer-form .esrselection input{
+    width: 20px;
+    margin-left: 10px;
+}
+
+.optimizer-form .esrselection{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.optimizer-form .esrbody .generalform .textform{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 10px;
+    margin: 12px;
+    justify-content: center;
+}
+.optimizer-form .esrbody .generalform .textform input{
+    width: 25%;
+    margin: 0px;
+}
+.table-container{
+    max-height: calc(14 * 30px); /* Adjust 40px based on the row height */
+    overflow-y: auto;
+}
+.table-container2{
+    max-height: calc(19 * 30px); /* Adjust 40px based on the row height */
+    overflow-y: auto;
+}
+#generalform input{
+    width: 50%;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 15px;
+}
+#generalform h1{
+    margin-bottom: 8px;
+}
+.optimizer-form .results label{
+    font-family: "Poppins", sans-serif;
+}
+.optimizer-form .results select{
+    width: 20%;
+}
