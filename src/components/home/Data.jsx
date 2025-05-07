@@ -8,6 +8,8 @@ const Data = () => {
       <h1 className="home__title">
         Jaltantra.
       </h1>
+      
+
       <h3 className="home__subtitle">
         IIT Bombay
       </h3>
