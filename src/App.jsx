@@ -6,8 +6,9 @@ import About from './components/about/About';
 import Optimizer from './components/optimizer/Optimizer';
 import LOptimizer from './components/optimizer/LOptimizer';
 import Authentication from './components/authentication/Authentication';
-import Footer from './components/footer/Footer';
+import Ping from './components/Ping';
 import { AuthProvider } from './AuthContext';
+
 
 const App = () => {
 
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="/auth" element={<Authentication />} />
           <Route path="/optimizer" element={<Optimizer />} />
           <Route path="/loop_optimizer" element={<LOptimizer />} />
+          <Route path="/ping" element={<Ping />} />
         </Routes>
         </AuthProvider>
         {/* <Footer /> */}
