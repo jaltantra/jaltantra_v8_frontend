@@ -110,3 +110,55 @@
     background-color: #000;
     color: #fff;
 }
+
+.navbar ul li a.active {
+    color: #fff;
+    background-color: #522da8;
+}
+.dark ul li a.active {
+    color: #000;
+    background-color: #fff;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .modal {
+    background: #fff;
+    padding: 2em;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    min-width: 300px;
+    text-align: center;
+  }
+  .modal-message {
+    margin-bottom: 1.5em;
+    font-size: 1.15em;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1.2em;
+  }
+  .modal-btn {
+    background: #522da8;
+    color: #fff;
+    padding: 0.5em 2em;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    border: 2px solid #522da8;
+  }
+  .modal-btn:hover {
+    background: #fff;
+    color: #522da8;
+    border: 2px solid #522da8;
+  }
+  
