@@ -1,9 +1,11 @@
 import React from 'react'
 import './Optbar.css'
-import { useState, useContext  } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { AuthContext } from '../../AuthContext';
+import { useLocation } from 'react-router-dom';
+
 // import { SiMicrosoftexcel } from "react-icons/si";
 // import { SiGooglecontaineroptimizedos } from "react-icons/si";
 // import { TbFileTypeXml } from "react-icons/tb";
@@ -13,13 +15,88 @@ import { AuthContext } from '../../AuthContext';
 import polyline from '@mapbox/polyline';
 
 const baseURL = import.meta.env.VITE_OPT_BASE_URL;
+const WAIT_TIMES = {
+  '1min': 90,
+  '5min': 330,
+  '1hour': 3630,
+};
 
 const Optbar = (props) => {
+  const location = useLocation();
   const [errorMessages, setErrorMessages] = useState('');
   const { isLoggedIn, logout } = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState("Loading...");
   const [failure, setFailure] = useState(false);
+  const [showTimeOptions, setShowTimeOptions] = useState(false);
+  const [selectedTime, setSelectedTime] = useState('1min');
+  const [waiting, setWaiting] = useState(false);
+  const [waitTime, setWaitTime] = useState(0);
+  const waitTimerRef = useRef();
+
+  // Helper to start the waiting countdown
+  const startWaiting = (timeLabel, retryPayload) => {
+    setWaiting(true);
+    setWaitTime(WAIT_TIMES[timeLabel] || 90);
+    setModalVisible(false); // Hide previous modal
+    setFailure(false);
+
+    // Timer logic
+    waitTimerRef.current = setInterval(() => {
+      setWaitTime((t) => {
+        if (t <= 1) {
+          clearInterval(waitTimerRef.current);
+          // Resend optimization request after wait
+          retryOptimizeAfterWait(timeLabel, retryPayload);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  };
+
+  // Helper: re-send the optimize request (payload includes time param)
+  const retryOptimizeAfterWait = async (timeLabel, prevPayload) => {
+    setWaiting(false);
+    setModalVisible(true);
+    setModalContent("Loading...");
+    setFailure(false);
+
+    const token = localStorage.getItem('jwtToken');
+    const url = baseURL + '/loopoptimizer/optimize';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(prevPayload),
+    });
+    const data = await response.json();
+    if (
+      data.status === 'Failure' &&
+      typeof data.data === 'string' &&
+      data.data.includes("The solver is working, refresh the page after 1 minutes to see the results")
+    ) {
+      // Recursive: wait again, same time
+      startWaiting(timeLabel, prevPayload);
+    } else if (data.status === 'Failure') {
+      setModalContent(`Failure: ${data.data}`);
+      setFailure(true);
+    } else {
+      setModalContent("Optimization completed successfully!");
+      props.setSuccess(true);
+      props.setResult(data);
+      props.setPresentform('results')
+      setTimeout(() => setModalVisible(false), 5000);
+    }
+  };
+
+  const handleOptimizeWithTime = (timeLabel) => {
+    setShowTimeOptions(false);
+    setSelectedTime(timeLabel);
+    optimize(timeLabel);
+  };
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -40,124 +117,115 @@ const Optbar = (props) => {
     reader.readAsArrayBuffer(file); // Read the file as an array buffer
   };
 
-  const optimize = async () =>{
-    if (!validatedata)
-      return;
-    else
-      setModalContent("Loading...")
+  useEffect(() => () => clearInterval(waitTimerRef.current), []);
+
+  const optimize = async (timeLabel) => {
+    if (!validatedata) return;
+
+    setModalContent("Loading...");
     setModalVisible(true);
-    const payload ={
+    setFailure(false);
+
+    const payload = {
       cmd: "save-record",
       recid: 0,
       version: "2.3.0.0",
-      general : {
+      general: {
         name_project: props.projectname,
         min_node_pressure: parseFloat(props.minnodepress),
         def_pipe_roughness: parseFloat(props.defaultroughness),
-        max_hl_perkm:  parseFloat(props.maxheadloss),
+        max_hl_perkm: parseFloat(props.maxheadloss),
         max_water_speed: parseFloat(props.maxwaterspeed),
         max_pipe_pressure: parseFloat(props.maxpipepress),
         supply_hours: parseFloat(props.supplyhours),
         source_nodeid: Number(props.sourcenodeid),
-        source_nodename:  props.sourcenodename,
+        source_nodename: props.sourcenodename,
         source_elevation: parseFloat(props.sourceelevation),
-        source_head: parseFloat(props.sourcehead)
+        source_head: parseFloat(props.sourcehead),
       },
-      nodes: props.noderows.map((node, index) => ({
-        ...node,
-        recid: index+1
-      })),
-      pipes: props.piperows.map((pipe, index) => ({
-        ...pipe,
-        recid: index+1
-      })),
-      commercialPipes:  props.commpiperows.map((pipe, index) => ({
-        ...pipe,
-        recid: index+1
-      })),
-      esrCost: props.esrrows.map((pipe, index) => ({
-        ...pipe,
-        recid: index+1
-      })),
-      pumpManual: props.pumprows.map((pump, index)=>({
-        ...pump,
-        recid: index+1
-      })),
-      valves: props.valverows.map((valve, index)=>({
-        ...valve,
-        recid: index+1
-      }))
+      nodes: props.noderows.map((node, index) => ({ ...node, recid: index + 1 })),
+      pipes: props.piperows.map((pipe, index) => ({ ...pipe, recid: index + 1 })),
+      commercialPipes: props.commpiperows.map((pipe, index) => ({ ...pipe, recid: index + 1 })),
+      esrCost: props.esrrows.map((pipe, index) => ({ ...pipe, recid: index + 1 })),
+      pumpManual: props.pumprows.map((pump, index) => ({ ...pump, recid: index + 1 })),
+      valves: props.valverows.map((valve, index) => ({ ...valve, recid: index + 1 })),
+    };
 
+    if (location.pathname === '/loop_optimizer') {
+      payload.time = timeLabel;
     }
-    if(props.esrenabled){
-      payload.esrGeneral={
+
+    if (props.esrenabled) {
+      payload.esrGeneral = {
         secondary_supply_hours: Number(props.secnethrs),
         esr_capacity_factor: parseFloat(props.esrcapfactor),
         max_esr_height: parseFloat(props.maxesrheight),
         allow_dummy: props.esrat0enabled,
-        esr_enabled: true
-      }
-      if(props.withesrnodes.length!==0)
-        payload.esrGeneral.must_esr=props.withesrnodes.map((nodeid, index)=>(Number(nodeid)));
-      if(props.withoutesrnodes.length!==0)
-        payload.esrGeneral.must_not_esr=props.withoutesrnodes.map((nodeid, index)=>(Number(nodeid)));
+        esr_enabled: true,
+      };
+      if (props.withesrnodes.length !== 0) payload.esrGeneral.must_esr = props.withesrnodes.map(Number);
+      if (props.withoutesrnodes.length !== 0) payload.esrGeneral.must_not_esr = props.withoutesrnodes.map(Number);
+    } else {
+      payload.esrGeneral = { must_esr: [], must_not_esr: [] };
     }
-    else{
-      payload.esrGeneral={
-        must_esr: [],
-        must_not_esr: []
-      }
-    }
-    if(props.pumpsenabled)
-    {
-      payload.pumpGeneral={
+    if (props.pumpsenabled) {
+      payload.pumpGeneral = {
         minpumpsize: parseFloat(props.minpumpsize),
         efficiency: parseFloat(props.pumpeff),
-        capitalcost_per_kw:  parseFloat(props.ccost),
+        capitalcost_per_kw: parseFloat(props.ccost),
         energycost_per_kwh: parseFloat(props.ecost),
-        design_lifetime:  parseFloat(props.designlt),
-        discount_rate:  parseFloat(props.discount),
-        inflation_rate:   parseFloat(props.inflation),
+        design_lifetime: parseFloat(props.designlt),
+        discount_rate: parseFloat(props.discount),
+        inflation_rate: parseFloat(props.inflation),
         pump_enabled: true,
         energycost_factor: 1,
-      }
-      if(props.withoutpumps.length!==0)
-        payload.pumpGeneral.must_not_pump=props.withoutpumps.map((pipeid, index)=>(Number(pipeid)));
+      };
+      if (props.withoutpumps.length !== 0)
+        payload.pumpGeneral.must_not_pump = props.withoutpumps.map(Number);
+    } else {
+      payload.pumpGeneral = { must_not_pump: [], energycost_factor: 1 };
     }
-    else{
-      payload.pumpGeneral={
-        must_not_pump: [],
-        energycost_factor: 1,
-      }
-    }
+
     const token = localStorage.getItem('jwtToken');
-    const response =await fetch(baseURL+'/branchoptimizer/optimize', {
+    const url =
+      location.pathname === '/loop_optimizer'
+        ? baseURL + '/loopoptimizer/optimize'
+        : baseURL + '/branchoptimizer/optimize';
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+      },
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
-    console.log(data);
     try {
+      if (
+        location.pathname === '/loop_optimizer' &&
+        data.status === 'Failure' &&
+        typeof data.data === 'string' &&
+        data.data.includes("The solver is working, refresh the page after")
+      ) {
+        // Start waiting modal and timer
+        startWaiting(timeLabel, payload);
+        return;
+      }
       if (data.status === 'Failure') {
-        setModalContent(`Failure: ${data.data}`);  // Update modal with failure message
-        setFailure(true);  // Keep modal open
+        setModalContent(`Failure: ${data.data}`);
+        setFailure(true);
       } else {
         setModalContent("Optimization completed successfully!");
         props.setSuccess(true);
         props.setResult(data);
-        setTimeout(() => {
-          setModalVisible(false);  // Close modal after 5 seconds
-        }, 5000);
+        props.setPresentform('results')
+        setTimeout(() => setModalVisible(false), 5000);
       }
     } catch (error) {
       setModalContent("An error occurred!");
-      setFailure(true);  // Keep modal open in case of error
+      setFailure(true);
     }
-  }
+  };
   
   const closeModal = () => {
     setModalVisible(false);
@@ -180,13 +248,16 @@ const Optbar = (props) => {
       //General Information Upload
 
       if (data[row][0] === undefined || String(data[row][0]).trim().length === 0) {
+        console.log('hi2');
         setErrorMessages("No data found in the excel file");
         throw "";
       }
       if (data[row][0] === "Network Name" && data[row][3] !== null) {
+        console.log('hi');
         props.setProjectname(data[row][3]);
       }
       else {
+        console.log(data[row][0]);
         setErrorMessages("No Network Name found in the excel file");
       }
       row++;
@@ -344,7 +415,7 @@ const Optbar = (props) => {
         row++;
         while (row < data.length) {
           row++;
-          if (data[row][0] === undefined)
+          if (data[row][0] === undefined || data[row][0] === 0)
             break;
           let diameter = data[row][0] ? data[row][0] : null;
           let roughness = data[row][1] ? data[row][1] : null;
@@ -714,6 +785,200 @@ const Optbar = (props) => {
     saveAs(blob, `${props.projectname}.xlsx`);
   };
   
+  const handleSaveInputFile = () => {
+  // Rebuild Excel structure according to parseExcelData logic
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet as 2D array, mimicking uploaded format
+  const sheet = [];
+
+  // -- General info (mimicking input template structure) --
+  sheet.push(["JalTantra: System For Optimization of Piped Water Networks, version:2.2.2.0"]); // Blank row
+  sheet.push(["developed by CSE and CTARA departments of IIT Bombay"]); // Blank row
+  sheet.push([]); // Blank row
+  sheet.push([]); // Blank row
+  sheet.push([]); // Blank row
+  sheet.push([]); // Blank row
+
+  // Project Name
+  sheet.push(["Network Name", "", "", props.projectname || ""]);
+
+  // Organization Name
+  sheet.push(["Organization Name", "", "", props.orgname || ""]);
+
+  // Minimum Node Pressure
+  sheet.push(["Minimum Node Pressure", "", "", props.minnodepress || ""]);
+
+  // Default Pipe Roughness
+  sheet.push(["Default Pipe Roughness 'C'", "", "", props.defaultroughness || ""]);
+
+  // Minimum Headloss per KM
+  sheet.push(["Minimum Headloss per KM", "", "", props.minheadloss || ""]);
+
+  // Maximum Headloss per KM
+  sheet.push(["Maximum Headloss per KM", "", "", props.maxheadloss || ""]);
+
+  // Maximum Water Speed
+  sheet.push(["Maximum Water Speed", "", "", props.maxwaterspeed || ""]);
+
+  // Maximum Pipe Pressure
+  sheet.push(["Maximum Pipe Pressure", "", "", props.maxpipepress || ""]);
+
+  // Number of Supply Hours
+  sheet.push(["Number of Supply Hours", "", "", props.supplyhours || ""]);
+
+  // Source Node ID
+  sheet.push(["Source Node ID", "", "", props.sourcenodeid || ""]);
+
+  // Source Node Name
+  sheet.push(["Source Node Name", "", "", props.sourcenodename || ""]);
+
+  // Source Elevation
+  sheet.push(["Source Elevation", "", "", props.sourceelevation || ""]);
+
+  // Source Head
+  sheet.push(["Source Head", "", "", props.sourcehead || ""]);
+
+  // -- NODE DATA section --
+  sheet.push([]);
+  sheet.push(["NODE DATA"]);
+  sheet.push(["Node ID", "Node Name", "Elevation", "Demand", "Min Pressure"]);
+  (props.noderows || []).forEach(row => {
+    sheet.push([
+      row.nodeid ?? "",
+      row.nodename ?? "",
+      row.elevation ?? "",
+      row.demand ?? "",
+      row.minpressure ?? ""
+    ]);
+  });
+
+  // -- PIPE DATA section --
+  sheet.push([]);
+  sheet.push(["PIPE DATA"]);
+  sheet.push(["Pipe ID", "Start Node", "End Node", "Length", "Diameter", "Roughness", "Parallel Allowed"]);
+  (props.piperows || []).forEach(row => {
+    sheet.push([
+      row.pipeid ?? "",
+      row.startnode ?? "",
+      row.endnode ?? "",
+      row.length ?? "",
+      row.diameter ?? "",
+      row.roughness ?? "",
+      row.parallelallowed ?? ""
+    ]);
+  });
+
+  // -- COMMERCIAL PIPE DATA section --
+  sheet.push([]);
+  sheet.push(["COMMERCIAL PIPE DATA"]);
+  sheet.push(["Diameter", "Roughness", "Cost"]);
+  (props.commpiperows || []).forEach(row => {
+    sheet.push([
+      row.diameter ?? "",
+      row.roughness ?? "",
+      row.cost ?? ""
+    ]);
+  });
+
+  // -- ESR DATA section (if enabled) --
+  if (props.esrenabled) {
+    sheet.push([]);
+    sheet.push(["ESR GENERAL DATA"]);
+    sheet.push(["ESR Enabled", "", "", 1]);
+    sheet.push(["Secondary Supply Hours", "", "", props.secnethrs ?? ""]);
+    sheet.push(["ESR Capacity Factor", "", "", props.esrcapfactor ?? ""]);
+    sheet.push(["Maximum ESR Height", "", "", props.maxesrheight ?? ""]);
+    sheet.push(["Allow ESRs at zero demand nodes", "", "", props.esrat0enabled ? 1 : 0]);
+    // You can add "Nodes that must have ESRs" and "must not have ESRs" as needed here
+    sheet.push([]);
+    sheet.push(["ESR COST DATA"]);
+    sheet.push(["Min Capacity", "Max Capacity", "Base Cost", "Unit Cost"]);
+    (props.esrrows || []).forEach(row => {
+      sheet.push([
+        row.mincapacity ?? "",
+        row.maxcapacity ?? "",
+        row.basecost ?? "",
+        row.unitcost ?? ""
+      ]);
+    });
+  }
+
+  // -- PUMP DATA section (if enabled) --
+  if (props.pumpsenabled) {
+    sheet.push([]);
+    sheet.push(["PUMP GENERAL DATA"]);
+    sheet.push(["Pump Enabled", "", "", 1]);
+    sheet.push(["Minimum Pump Size", "", "", props.minpumpsize ?? ""]);
+    sheet.push(["Pump Efficiency", "", "", props.pumpeff ?? ""]);
+    sheet.push(["Capital Cost per kW", "", "", props.ccost ?? ""]);
+    sheet.push(["Energy Cost per kWh", "", "", props.ecost ?? ""]);
+    sheet.push(["Design Lifetime", "", "", props.designlt ?? ""]);
+    sheet.push(["Discount Rate", "", "", props.discount ?? ""]);
+    sheet.push(["Inflation Rate", "", "", props.inflation ?? ""]);
+    // Pipes that must not have Pumps (if any)
+    sheet.push(["Pipes that must not have Pumps", "", "", (props.withoutpumps||[]).join(";")]);
+    sheet.push([]);
+    sheet.push(["MANUAL PUMPS DATA"]);
+    sheet.push(["Pump Power", "Pipe ID"]);
+    (props.pumprows || []).forEach(row => {
+      sheet.push([
+        row.pumppower ?? "",
+        row.pipeid ?? ""
+      ]);
+    });
+  }
+
+  // -- VALVES DATA section --
+  if ((props.valverows || []).length > 0) {
+    sheet.push([]);
+    sheet.push(["VALVES DATA"]);
+    sheet.push(["Pipe ID", "Valve Setting"]);
+    (props.valverows || []).forEach(row => {
+      sheet.push([
+        row.pipeid ?? "",
+        row.valvesetting ?? ""
+      ]);
+    });
+  }
+
+  // -- MAP NODE DATA section --
+  if ((props.mapnodedata || []).length > 0) {
+    sheet.push([]);
+    sheet.push(["MAP NODE DATA"]);
+    sheet.push(["Node Name", "Node ID", "Latitude", "Longitude", "isEsr"]);
+    (props.mapnodedata || []).forEach(row => {
+      sheet.push([
+        row.nodename ?? "",
+        row.nodeid ?? "",
+        row.lat ?? "",
+        row.lng ?? "",
+        row.isEsr ?? ""
+      ]);
+    });
+  }
+
+  // -- MAP PIPE DATA section --
+  if ((props.mappipedata || []).length > 0) {
+    sheet.push([]);
+    sheet.push(["MAP PIPE DATA"]);
+    sheet.push(["", "", "", "Encoded Path"]);
+    (props.mappipedata || []).forEach(row => {
+      sheet.push([
+        "", "", "", row.path ? row.path : ""
+      ]);
+    });
+  }
+
+  // Convert to worksheet and save
+  const ws = XLSX.utils.aoa_to_sheet(sheet);
+  XLSX.utils.book_append_sheet(wb, ws, "Input Data");
+  const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, `${props.projectname || 'input'}.xls`);
+};
+
 
   return (
     <>
@@ -730,8 +995,11 @@ const Optbar = (props) => {
         <input type="file" id="fileInput" accept=".xls" onChange={handleFileChange} />
         <label htmlFor="fileInput" className="custom-file-label">
         {/* <SiMicrosoftexcel /> */}
-        Upload Excel File
+        Load Excel File
       </label>
+      <button onClick={handleSaveInputFile}>
+    Save Input File
+  </button>
       </div>
       <div className='optimize-btn'>
         {props.success && <button onClick={()=>props.setPresentform('results')}>
@@ -740,19 +1008,46 @@ const Optbar = (props) => {
         {props.success && <button onClick={handleDownload}>
           {/* <RiFolderDownloadLine /> */}
           Download Results</button>}
-        <button  onClick={optimize}>
-          {/* <SiGooglecontaineroptimizedos /> */}
-          Optimize</button>
-        {modalVisible && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <p>{modalContent}</p>
-            {failure && (
-              <button onClick={closeModal}>Close</button>
+          {location.pathname === '/loop_optimizer' ? (
+            <div
+              className="optimize-dropdown-container"
+              onMouseEnter={() => setShowTimeOptions(true)}
+              onMouseLeave={() => setShowTimeOptions(false)}
+            >
+              <button>Optimize</button>
+              {showTimeOptions && (
+                <div className="optimize-dropdown">
+                  <div onClick={() => handleOptimizeWithTime('1min')}>1min</div>
+                  <div onClick={() => handleOptimizeWithTime('5min')}>5min</div>
+                  <div onClick={() => handleOptimizeWithTime('1hour')}>1hour</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button onClick={optimize}>Optimize</button>
+          )}
+
+          {(modalVisible || waiting) && (
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  {waiting ? (
+                    <p>
+                      Optimizing... <br />
+                      <span style={{ fontWeight: 'bold', fontSize: '1.2em' }}>
+                        {waitTime} seconds left
+                      </span>
+                      <br />
+                      Please keep this window open. Results will be fetched automatically.
+                    </p>
+                  ) : (
+                    <p>{modalContent}</p>
+                  )}
+                  {failure && !waiting && (
+                    <button onClick={closeModal}>Close</button>
+                  )}
+                </div>
+              </div>
             )}
-          </div>
-        </div>
-      )}
       </div>
       </div>
       ) 

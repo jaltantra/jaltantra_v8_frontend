@@ -12,7 +12,7 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    box-shadow: inset 0 0 0 9px #522da85d;
+    box-shadow: inset 0 0 0 9px #4a95d38f;
     order: 1;
     justify-self: center;
     width: 500px;
@@ -36,7 +36,7 @@
 .home__title{
     font-size: 4rem;
     font-family: "Poppins", sans-serif;
-    color: #522da8;
+    color: #4a96d3;
 }
 
 .home__subtitle{
@@ -52,7 +52,7 @@
 }
 
 .home__data button{
-    background-color: #522da8;
+    background-color: #4a96d3;
     color: #fff;
     padding: 10px 20px;
     border: none;

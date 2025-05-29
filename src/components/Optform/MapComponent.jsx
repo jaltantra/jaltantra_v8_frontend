@@ -6,13 +6,13 @@ const containerStyle = {
     width: "97%",
     height: "600px",
     margin: "20px",
-    boxShadow: "0 0 0 9px #522da85d"
+    boxShadow: "0 0 0 9px #4a96d35d"
 };
 const Pin = ({ text }) => {
     const pinStyle = {
-      backgroundColor: "#522da8a6",
+      backgroundColor: "#4a96d3a6",
       color: "white",
-      border: `3px solid #522da8`,
+      border: `3px solid #4a96d3`,
       borderRadius: '50% 50% 50% 0',
       width: '30px',
       height: '30px',

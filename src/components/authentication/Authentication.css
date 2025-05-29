@@ -36,7 +36,7 @@
 }
 
 .login-box button{
-    background-color: #512da8;
+    background-color: #4a96d3;
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -152,9 +152,9 @@
 }
 
 .toggle{
-    background-color: #512da8;
+    background-color: #4a96d3;
     height: 100%;
-    background: linear-gradient(to right, #5c6bc0, #512da8);
+    background: linear-gradient(to right, #5c6bc0, #4a96d3);
     color: #fff;
     position: relative;
     left: -100%;

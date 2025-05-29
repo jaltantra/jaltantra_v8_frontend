@@ -82,7 +82,7 @@ const Navbar = (props) => {
         <li><Link to="/" className={location.pathname === '/'?'active':''} onClick={(e) => handleNav('/', e)}>Home</Link></li>
         <li><Link to="/optimizer" className={location.pathname === '/optimizer'?'active':''} onClick={(e) => handleNav('/optimizer', e)}>Branch Optimizer</Link></li>
         <li><Link to="/loop_optimizer" className={location.pathname === '/loop_optimizer'?'active':''} onClick={(e) => handleNav('/loop_optimizer', e)}>Loop Optimizer</Link></li>
-        <li><Link to="/about" className={location.pathname === '/about'?'active':''} onClick={(e) => handleNav('/about', e)}>About</Link></li>
+        <li><Link to="/about" className={location.pathname === '/about'?'active':''} onClick={(e) => handleNav('/about', e)}>Visualizer</Link></li>
       </ul>
 
       <div className='side-nav'>

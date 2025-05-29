@@ -38,27 +38,28 @@
 }
 .optbar .fileupload-btn button, .optbar .fileupload-btn label{
     background-color: white;
-    border: 3px solid #512da8;
+    border: 3px solid #4a96d3;
 }
 .optbar .fileupload-btn input{
     background-color: white;
-    border: 3px solid #512da8;
+    border: 3px solid #4a96d3;
     display: none;
 }
 .optbar .fileupload-btn  button:hover,  .optbar .fileupload-btn label:hover{
-    background-color: #512da8;
+    background-color: #4a96d3;
     color: white;
     box-shadow: 0 0px 0px rgba(0, 0, 0, 0.349);
 }
 .optbar .optimize-btn  button{
-    background-color: #512da8;
+    background-color: #4a96d3;
     color: white;
-    border: 3px solid #512da8;
+    border: 3px solid #4a96d3;
     transition: 0.5s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    width:205px;
 }
 .optbar .optimize-btn  button:hover{
     background-color: white;
@@ -105,5 +106,37 @@
   
   .modal-content button:hover {
     background-color: #0056b3;
+  }
+  .optimize-dropdown-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .optimize-dropdown {
+    position: absolute;
+    top: -230%;
+    left: 0;
+    width: 205px;
+    background: #fff;
+    border: 2px solid #4a96d3;
+    border-radius: 7px;
+    box-shadow: 0 3px 16px rgba(0,0,0,0.12);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .optimize-dropdown div {
+    padding: 10px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    color: #4a96d3;
+    background: #fff;
+    border-radius: 7px;
+  }
+  
+  .optimize-dropdown div:hover {
+    background: #4a96d3;
+    color: #fff;
   }
   

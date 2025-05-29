@@ -14,7 +14,7 @@ const Data = () => {
         IIT Bombay
       </h3>
       <p className="home__description">
-      A Free and Publicly Available System for Design and <br></br>Optimization of Water Distribution Networks
+      A Free and Publicly Available System for Design and <br></br>Optimization of Water Distribution Networks.
       </p>
       <button>
         Learn More <CgMoreO />

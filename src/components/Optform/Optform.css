@@ -6,5 +6,17 @@
     backdrop-filter: blur(10px);
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
-    border-left: 20px solid #512da8;
+    border-left: 20px solid #4a96d3;
+}
+
+.inputtag{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+.inputtag p{
+    width: 250px;
+    display: flex;
+    justify-content: right;
 }
