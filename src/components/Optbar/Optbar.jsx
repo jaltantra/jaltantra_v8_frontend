@@ -186,6 +186,7 @@ const Optbar = (props) => {
       payload.pumpGeneral = { must_not_pump: [], energycost_factor: 1 };
     }
 
+    console.log(payload);
     const token = localStorage.getItem('jwtToken');
     const url =
       location.pathname === '/loop_optimizer'
